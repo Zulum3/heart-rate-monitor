@@ -12,7 +12,8 @@ extern volatile uint16_t adc_index;
 
 
 void Timer_Init(void);
-void TIM2_IRQHandler(void);
+void TIM4_IRQHandler(void);
 extern unsigned short ADC_DATA;
+
 
 #endif /* TIMERS_H */

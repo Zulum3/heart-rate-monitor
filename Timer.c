@@ -11,32 +11,35 @@ volatile uint16_t adc_index = 0;  // Buffer index
 
 
 void Timer_Init(void) {
-    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;   // Enable clock for GPIOD
+    RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;   // Enable clock for GPIOD
     LED_PORT->MODER |= (1U << (LED_PIN * 2));  // Set LED pin as output
     
      // Enable Timer 2 clock
-    TIM2->PSC = 9000 - 1;  // Prescaler for 10kHz
-    TIM2->ARR = 1000 - 1;  // Auto-reload for 10Hz LED toggle
-	  TIM2->CNT=0;
+    TIM4->PSC = 9000 - 1;  // Prescaler for 10kHz
+    TIM4->ARR = 1000 - 1;  // Auto-reload for 10Hz LED toggle
+	  TIM4->CNT=0;
 	  NVIC->ISER[0]=(1u<<28);
 
-    TIM2->EGR |= TIM_EGR_UG;// triggers an udate event for timer 2
-    TIM2->DIER |= TIM_DIER_UIE;  // Enable update interrupt
-    NVIC_EnableIRQ(TIM2_IRQn);  // Enable IRQ
-    TIM2->CR1 |= TIM_CR1_CEN;  // Start Timer 2
+   // TIM2->EGR |= TIM_EGR_UG;// triggers an udate event for timer 2
+    TIM4->DIER |= TIM_DIER_UIE;  // Enable update interrupt
+    NVIC_EnableIRQ(TIM4_IRQn);  // Enable IRQ
+    TIM4->CR1 |= TIM_CR1_CEN;  // Start Timer 2
 }
-void TIM2_IRQHandler(void) {
-    if (TIM2->SR & TIM_SR_UIF) {
-        TIM2->SR &= ~TIM_SR_UIF;  // Clear interrupt flag
+void TIM4_IRQHandler(void) {
+    if (TIM4->SR & TIM_SR_UIF) {
+        TIM4->SR &= ~TIM_SR_UIF;  // Clear interrupt flag
        //LED_PORT->ODR ^= (1U << LED_PIN);  // Toggle LED
-			USART_SendChar('H');
+		//	USART_SendChar('H');
+			 if (ADC1->SR & ADC_SR_EOC) {  // Check if ADC conversion is complete
+        adc_buffer[adc_index] = ADC1->DR;  // Read ADC data
+        adc_index = (adc_index + 1) % ADC_BUFFER_SIZE; // Wrap around properly
+    
     }
-		ADC_DATA = read_adc(13);			//read value from ADC Channel 13
+//		ADC_DATA = read_adc(13);			//read value from ADC Channel 13
 	 // output_dac(ADC_DATA);			//send straight to DAC (DAC pin should replicate ADC pin)
-			if (adc_index < ADC_BUFFER_SIZE) {
-            adc_buffer[adc_index++] = ADC_DATA;  // Store ADC value in buffer
-        } else {
-            adc_index = 0;  // Reset buffer index (circular buffer)
-        }
+
+   
+}
+
 
 			}
