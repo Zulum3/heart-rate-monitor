@@ -19,7 +19,7 @@ int main(void)
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // Enable GPIOA clock
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // Enable GPIOB clock
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN; // Enable GPIOC clock
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN; // Enable GPIOA clock
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN; // Enable GPIOD clock
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN; // Enable GPIOE clock
 	
 	// Configure PB14 as Open-Drain Output
@@ -48,16 +48,16 @@ int main(void)
 //  GPIOE->ODR |= (0xFF << 8);          // Set all segments HIGH (OFF in active LOW)
 
 	// Initialize ADC and DAC 
-  //init_ADC();
+  init_ADC();
 	init_DAC();
 	Timer_Init();
 	initLCD();
 	LED_Init();
 	
+	
 	// Initialize USART
  init_USART();
- USART_SendString("Hello, STM32 USART at 230400 baud!\r\n");
-
+ 
 	
 	// Initialize peripherals
  // Segment_Init();  // Initialize 7-segment display GPIOs
@@ -74,8 +74,8 @@ int main(void)
 		LCD_SendString("Heart rate = 80");
 		cmdLCD(LCD_LINE2);
 		LCD_SendString("Oxygen lvl= 96%");
-		output_dac1(1000);
-		output_dac2(1000);
+		output_dac1(0);
+		output_dac2(4000);
 	//	blink_led();
 		
 //		set_PC7_on();
@@ -86,17 +86,24 @@ int main(void)
 		//generateComplexWave;
 //value = adc();
 //send_usart(value);
-	 while (1) {
-       USART_SendChar('H');
-		  USART_SendString("Hello, STM32 USART at 230400 baud!\r\n");
+	 while (1){
+        compute_min_max(); // Compute min and max ADC values
 
-       //USART_SendChar('e');
-      // USART_SendChar('l');
-      // USART_SendChar('l');
-      // USART_SendChar('o');
-      // USART_SendChar('\n');
-        for (volatile int i = 0; i < 1000000; i++); // Delay
-   }
+       // Send formatted data over USART
+       USART_SendString("\r\nMin Value: ");
+       USART_SendNumber(min_value);
+       USART_SendString("\r\nMax Value: ");
+        USART_SendNumber(max_value);
+       USART_SendString("\r\n------------\r\n");
+		 	for (volatile int j = 0; j < 1000000; j++); // Delay
+		 
+		   // while (1) {
+        //USART_SendString("Hello, World!\r\n");  
+        //for (volatile int i = 0; i < 1000000; i++); // Small delay
+    }
+
+       // for (volatile int i = 0; i < 1000000; i++); // Simple delay
+    }
 
        LED_PORT->ODR ^= (1U << LED_PIN);  // Toggle LED
 		 
@@ -106,7 +113,7 @@ int main(void)
 		 }
 		
 	}
-}
+
 	
 
 
